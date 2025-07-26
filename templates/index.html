@@ -1,0 +1,344 @@
+{% extends "base.html" %}
+
+{% block title %}File Organizer - Upload Files{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="bi bi-cloud-arrow-up me-2"></i>Upload Files to Organize</h4>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <img src="{{ url_for('static', filename='img/upload.svg') }}" alt="Upload" class="img-fluid mb-3" style="max-height: 200px;">
+                    <p class="lead">Drag and drop files here or click to browse</p>
+                </div>
+                
+                <form id="upload-form" enctype="multipart/form-data">
+                    <div class="mb-4">
+                        <div class="upload-area" id="drop-area">
+                            <input type="file" id="file-input" name="files[]" multiple class="d-none">
+                            <div class="upload-prompt text-center p-5 border border-2 border-dashed rounded">
+                                <i class="bi bi-cloud-arrow-up display-4 text-primary mb-3"></i>
+                                <h5>Drag & Drop Files Here</h5>
+                                <p class="text-muted">or</p>
+                                <button type="button" id="browse-btn" class="btn btn-primary">
+                                    <i class="bi bi-folder me-2"></i>Browse Files
+                                </button>
+                            </div>
+                            <div id="file-list" class="mt-3 d-none">
+                                <h5><i class="bi bi-files me-2"></i>Selected Files</h5>
+                                <ul class="list-group" id="selected-files"></ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" id="upload-btn" class="btn btn-success btn-lg" disabled>
+                            <i class="bi bi-arrow-up-circle me-2"></i>Upload and Organize
+                        </button>
+                    </div>
+                </form>
+                
+                <div id="upload-progress" class="mt-4 d-none">
+                    <h5 class="mb-3">Uploading Files...</h5>
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-light">
+                <div class="row">
+                    <div class="col-md-4 text-center">
+                        <i class="bi bi-shield-check text-success fs-3"></i>
+                        <h6 class="mt-2">Secure</h6>
+                        <p class="small text-muted">Your files are processed securely</p>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <i class="bi bi-lightning-charge text-warning fs-3"></i>
+                        <h6 class="mt-2">Fast</h6>
+                        <p class="small text-muted">Quick organization process</p>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <i class="bi bi-folder-check text-primary fs-3"></i>
+                        <h6 class="mt-2">Organized</h6>
+                        <p class="small text-muted">Files sorted by type</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4 shadow-sm">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>How It Works</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 text-center mb-3">
+                        <div class="p-3 rounded-circle bg-primary text-white d-inline-flex justify-content-center align-items-center" style="width: 60px; height: 60px;">
+                            <i class="bi bi-upload fs-4"></i>
+                        </div>
+                        <h5 class="mt-3">1. Upload</h5>
+                        <p class="text-muted">Select and upload your files</p>
+                    </div>
+                    <div class="col-md-4 text-center mb-3">
+                        <div class="p-3 rounded-circle bg-success text-white d-inline-flex justify-content-center align-items-center" style="width: 60px; height: 60px;">
+                            <i class="bi bi-magic fs-4"></i>
+                        </div>
+                        <h5 class="mt-3">2. Organize</h5>
+                        <p class="text-muted">Files are sorted by type</p>
+                    </div>
+                    <div class="col-md-4 text-center mb-3">
+                        <div class="p-3 rounded-circle bg-info text-white d-inline-flex justify-content-center align-items-center" style="width: 60px; height: 60px;">
+                            <i class="bi bi-download fs-4"></i>
+                        </div>
+                        <h5 class="mt-3">3. Download</h5>
+                        <p class="text-muted">Get your organized files</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const dropArea = document.getElementById('drop-area');
+        const fileInput = document.getElementById('file-input');
+        const browseBtn = document.getElementById('browse-btn');
+        const uploadBtn = document.getElementById('upload-btn');
+        const fileList = document.getElementById('file-list');
+        const selectedFiles = document.getElementById('selected-files');
+        const uploadForm = document.getElementById('upload-form');
+        const uploadProgress = document.getElementById('upload-progress');
+        const progressBar = uploadProgress.querySelector('.progress-bar');
+        
+        // Open file browser when browse button is clicked
+        browseBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        // Handle drag and drop events
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+        
+        function highlight() {
+            dropArea.classList.add('highlight');
+        }
+        
+        function unhighlight() {
+            dropArea.classList.remove('highlight');
+        }
+        
+        // Handle dropped files
+        dropArea.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+        
+        // Handle selected files from file input
+        fileInput.addEventListener('change', function() {
+            handleFiles(this.files);
+        });
+        
+        function handleFiles(files) {
+            if (files.length > 0) {
+                fileList.classList.remove('d-none');
+                uploadBtn.disabled = false;
+                
+                // Clear previous file list
+                selectedFiles.innerHTML = '';
+                
+                // Display selected files
+                Array.from(files).forEach(file => {
+                    const item = document.createElement('li');
+                    item.className = 'list-group-item d-flex justify-content-between align-items-center';
+                    
+                    const fileIcon = getFileIcon(file.name);
+                    const fileSize = formatFileSize(file.size);
+                    
+                    item.innerHTML = `
+                        <div>
+                            <i class="${fileIcon} me-2"></i>
+                            <span>${file.name}</span>
+                        </div>
+                        <span class="badge bg-secondary rounded-pill">${fileSize}</span>
+                    `;
+                    
+                    selectedFiles.appendChild(item);
+                });
+            }
+        }
+        
+        // Handle form submission
+        uploadForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (fileInput.files.length === 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'No Files Selected',
+                    text: 'Please select at least one file to upload.'
+                });
+                return;
+            }
+            
+            // Show progress bar
+            uploadProgress.classList.remove('d-none');
+            uploadBtn.disabled = true;
+            
+            // Create FormData object
+            const formData = new FormData();
+            
+            // Add files to FormData
+            for (let i = 0; i < fileInput.files.length; i++) {
+                formData.append('files[]', fileInput.files[i]);
+            }
+            
+            // Simulate progress (in a real app, you'd use XHR's progress event)
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 5;
+                progressBar.style.width = `${Math.min(progress, 90)}%`;
+                
+                if (progress >= 90) {
+                    clearInterval(interval);
+                }
+            }, 200);
+            
+            // Send files to server
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                clearInterval(interval);
+                progressBar.style.width = '100%';
+                
+                if (data.success) {
+                    setTimeout(() => {
+                        window.location.href = data.next;
+                    }, 1000);
+                } else {
+                    throw new Error(data.error || 'Upload failed');
+                }
+            })
+            .catch(error => {
+                clearInterval(interval);
+                uploadProgress.classList.add('d-none');
+                uploadBtn.disabled = false;
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Upload Failed',
+                    text: error.message
+                });
+            });
+        });
+        
+        // Helper functions
+        function getFileIcon(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            
+            const iconMap = {
+                // Documents
+                'pdf': 'bi bi-file-earmark-pdf',
+                'doc': 'bi bi-file-earmark-word',
+                'docx': 'bi bi-file-earmark-word',
+                'txt': 'bi bi-file-earmark-text',
+                'rtf': 'bi bi-file-earmark-text',
+                'xls': 'bi bi-file-earmark-excel',
+                'xlsx': 'bi bi-file-earmark-excel',
+                'ppt': 'bi bi-file-earmark-slides',
+                'pptx': 'bi bi-file-earmark-slides',
+                
+                // Images
+                'jpg': 'bi bi-file-earmark-image',
+                'jpeg': 'bi bi-file-earmark-image',
+                'png': 'bi bi-file-earmark-image',
+                'gif': 'bi bi-file-earmark-image',
+                'svg': 'bi bi-file-earmark-image',
+                
+                // Videos
+                'mp4': 'bi bi-file-earmark-play',
+                'mov': 'bi bi-file-earmark-play',
+                'avi': 'bi bi-file-earmark-play',
+                'mkv': 'bi bi-file-earmark-play',
+                
+                // Audio
+                'mp3': 'bi bi-file-earmark-music',
+                'wav': 'bi bi-file-earmark-music',
+                'ogg': 'bi bi-file-earmark-music',
+                
+                // Archives
+                'zip': 'bi bi-file-earmark-zip',
+                'rar': 'bi bi-file-earmark-zip',
+                '7z': 'bi bi-file-earmark-zip',
+                
+                // Code
+                'py': 'bi bi-file-earmark-code',
+                'js': 'bi bi-file-earmark-code',
+                'html': 'bi bi-file-earmark-code',
+                'css': 'bi bi-file-earmark-code',
+                'java': 'bi bi-file-earmark-code',
+                'json': 'bi bi-file-earmark-code'
+            };
+            
+            return iconMap[ext] || 'bi bi-file-earmark';
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+    });
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .upload-area {
+        position: relative;
+    }
+    
+    .border-dashed {
+        border-style: dashed !important;
+    }
+    
+    .upload-area.highlight .upload-prompt {
+        border-color: #0d6efd !important;
+        background-color: rgba(13, 110, 253, 0.05);
+    }
+    
+    #file-list {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+</style>
+{% endblock %}

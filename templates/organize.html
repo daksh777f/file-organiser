@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+
+{% block title %}File Organizer - Organize Files{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="bi bi-folder-check me-2"></i>Organize Your Files</h4>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <img src="{{ url_for('static', filename='img/organized.svg') }}" alt="Organize" class="img-fluid mb-3" style="max-height: 200px;">
+                    <h5>Ready to organize {{ files|length }} files</h5>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="bi bi-files me-2"></i>Files to Organize</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>File Name</th>
+                                        <th>Category</th>
+                                        <th>Size</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for file in files %}
+                                    <tr>
+                                        <td>
+                                            <i class="{{ get_file_icon(file.name) }} me-2"></i>
+                                            {{ file.name }}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{{ get_category_color(file.category) }}">{{ file.category }}</span>
+                                        </td>
+                                        <td>{{ format_size(file.size) }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="bi bi-gear me-2"></i>Organization Options</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="organize-form">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="recursive-check">
+                                <label class="form-check-label" for="recursive-check">
+                                    <strong>Recursive Organization</strong>
+                                    <p class="text-muted small mb-0">Process files in subdirectories</p>
+                                </label>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button type="submit" id="organize-btn" class="btn btn-success btn-lg">
+                                    <i class="bi bi-magic me-2"></i>Organize Files
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <div id="organize-progress" class="d-none">
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0"><i class="bi bi-arrow-repeat me-2"></i>Organization Progress</h5>
+                        </div>
+                        <div class="card-body text-center">
+                            <div class="spinner-border text-primary mb-3" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <h5 id="progress-text">Organizing your files...</h5>
+                            <div class="progress mt-3">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const organizeForm = document.getElementById('organize-form');
+        const organizeBtn = document.getElementById('organize-btn');
+        const recursiveCheck = document.getElementById('recursive-check');
+        const organizeProgress = document.getElementById('organize-progress');
+        const progressText = document.getElementById('progress-text');
+        
+        organizeForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Disable the button and show progress
+            organizeBtn.disabled = true;
+            organizeProgress.classList.remove('d-none');
+            
+            // Get form data
+            const recursive = recursiveCheck.checked;
+            
+            // Send organization request
+            fetch('/api/organize/{{ session_id }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    recursive: recursive
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    progressText.textContent = 'Organization complete!';
+                    
+                    // Redirect to download page
+                    setTimeout(() => {
+                        window.location.href = data.download_url;
+                    }, 1500);
+                } else {
+                    throw new Error(data.error || 'Organization failed');
+                }
+            })
+            .catch(error => {
+                organizeBtn.disabled = false;
+                organizeProgress.classList.add('d-none');
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Organization Failed',
+                    text: error.message
+                });
+            });
+        });
+    });
+    
+    // Helper functions
+    function get_file_icon(filename) {
+        const ext = filename.split('.').pop().toLowerCase();
+        
+        const iconMap = {
+            // Documents
+            'pdf': 'bi bi-file-earmark-pdf',
+            'doc': 'bi bi-file-earmark-word',
+            'docx': 'bi bi-file-earmark-word',
+            'txt': 'bi bi-file-earmark-text',
+            'rtf': 'bi bi-file-earmark-text',
+            'xls': 'bi bi-file-earmark-excel',
+            'xlsx': 'bi bi-file-earmark-excel',
+            'ppt': 'bi bi-file-earmark-slides',
+            'pptx': 'bi bi-file-earmark-slides',
+            
+            // Images
+            'jpg': 'bi bi-file-earmark-image',
+            'jpeg': 'bi bi-file-earmark-image',
+            'png': 'bi bi-file-earmark-image',
+            'gif': 'bi bi-file-earmark-image',
+            'svg': 'bi bi-file-earmark-image',
+            
+            // Videos
+            'mp4': 'bi bi-file-earmark-play',
+            'mov': 'bi bi-file-earmark-play',
+            'avi': 'bi bi-file-earmark-play',
+            'mkv': 'bi bi-file-earmark-play',
+            
+            // Audio
+            'mp3': 'bi bi-file-earmark-music',
+            'wav': 'bi bi-file-earmark-music',
+            'ogg': 'bi bi-file-earmark-music',
+            
+            // Archives
+            'zip': 'bi bi-file-earmark-zip',
+            'rar': 'bi bi-file-earmark-zip',
+            '7z': 'bi bi-file-earmark-zip',
+            
+            // Code
+            'py': 'bi bi-file-earmark-code',
+            'js': 'bi bi-file-earmark-code',
+            'html': 'bi bi-file-earmark-code',
+            'css': 'bi bi-file-earmark-code',
+            'java': 'bi bi-file-earmark-code',
+            'json': 'bi bi-file-earmark-code'
+        };
+        
+        return iconMap[ext] || 'bi bi-file-earmark';
+    }
+    
+    function get_category_color(category) {
+        const colorMap = {
+            'Documents': 'primary',
+            'Images': 'success',
+            'Videos': 'warning',
+            'Audio': 'danger',
+            'Archives': 'info',
+            'Code': 'purple',
+            'Others': 'secondary'
+        };
+        
+        return colorMap[category] || 'secondary';
+    }
+    
+    function format_size(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .badge.bg-purple {
+        background-color: #6f42c1;
+    }
+    
+    .table-responsive {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+</style>
+{% endblock %}

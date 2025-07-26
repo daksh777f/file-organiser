@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" fill="none">
+  <rect width="200" height="200" fill="white"/>
+  
+  <!-- Document Folder -->
+  <rect x="30" y="50" width="40" height="30" rx="5" fill="#4e73df" opacity="0.8"/>
+  <rect x="30" y="50" width="40" height="5" rx="2" fill="#3a56b0"/>
+  <rect x="45" y="60" width="10" height="15" fill="white" opacity="0.7"/>
+  
+  <!-- Image Folder -->
+  <rect x="80" y="50" width="40" height="30" rx="5" fill="#1cc88a" opacity="0.8"/>
+  <rect x="80" y="50" width="40" height="5" rx="2" fill="#169c6b"/>
+  <rect x="90" y="60" width="20" height="15" rx="2" fill="white" opacity="0.7"/>
+  <circle cx="95" cy="65" r="2" fill="#1cc88a"/>
+  
+  <!-- Video Folder -->
+  <rect x="130" y="50" width="40" height="30" rx="5" fill="#f6c23e" opacity="0.8"/>
+  <rect x="130" y="50" width="40" height="5" rx="2" fill="#d9a730"/>
+  <polygon points="145,60 145,75 155,67.5" fill="white" opacity="0.7"/>
+  
+  <!-- Audio Folder -->
+  <rect x="30" y="90" width="40" height="30" rx="5" fill="#e74a3b" opacity="0.8"/>
+  <rect x="30" y="90" width="40" height="5" rx="2" fill="#c13a2d"/>
+  <path d="M45 95 Q50 95 50 105 Q50 115 45 115 M50 100 L55 100 L55 110 L50 110" stroke="white" stroke-width="2" opacity="0.7"/>
+  
+  <!-- Archive Folder -->
+  <rect x="80" y="90" width="40" height="30" rx="5" fill="#36b9cc" opacity="0.8"/>
+  <rect x="80" y="90" width="40" height="5" rx="2" fill="#2a94a3"/>
+  <rect x="90" y="100" width="20" height="15" rx="2" fill="white" opacity="0.7"/>
+  <line x1="90" y1="105" x2="110" y2="105" stroke="#36b9cc" stroke-width="1"/>
+  <line x1="90" y1="110" x2="110" y2="110" stroke="#36b9cc" stroke-width="1"/>
+  
+  <!-- Code Folder -->
+  <rect x="130" y="90" width="40" height="30" rx="5" fill="#6f42c1" opacity="0.8"/>
+  <rect x="130" y="90" width="40" height="5" rx="2" fill="#5a359c"/>
+  <text x="140" y="110" font-family="monospace" font-size="10" fill="white" opacity="0.7">&lt;/&gt;</text>
+  
+  <!-- Others Folder -->
+  <rect x="80" y="130" width="40" height="30" rx="5" fill="#858796" opacity="0.8"/>
+  <rect x="80" y="130" width="40" height="5" rx="2" fill="#6e6e7a"/>
+  <text x="95" y="150" font-family="sans-serif" font-size="15" fill="white" opacity="0.7">?</text>
+  
+  <!-- Check Mark -->
+  <circle cx="100" cy="30" r="15" fill="#1cc88a"/>
+  <path d="M93 30 L98 35 L107 25" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Connecting Lines -->
+  <line x1="100" y1="45" x2="100" y2="50" stroke="#dddddd" stroke-width="1" stroke-dasharray="2"/>
+  <line x1="50" y1="45" x2="50" y2="50" stroke="#dddddd" stroke-width="1" stroke-dasharray="2"/>
+  <line x1="150" y1="45" x2="150" y2="50" stroke="#dddddd" stroke-width="1" stroke-dasharray="2"/>
+  <line x1="50" y1="45" x2="150" y2="45" stroke="#dddddd" stroke-width="1" stroke-dasharray="2"/>
+  
+  <line x1="50" y1="80" x2="50" y2="90" stroke="#dddddd" stroke-width="1" stroke-dasharray="2"/>
+  <line x1="100" y1="80" x2="100" y2="90" stroke="#dddddd" stroke-width="1" stroke-dasharray="2"/>
+  <line x1="150" y1="80" x2="150" y2="90" stroke="#dddddd" stroke-width="1" stroke-dasharray="2"/>
+  <line x1="50" y1="80" x2="150" y2="80" stroke="#dddddd" stroke-width="1" stroke-dasharray="2"/>
+  
+  <line x1="50" y1="120" x2="50" y2="130" stroke="#dddddd" stroke-width="1" stroke-dasharray="2"/>
+  <line x1="100" y1="120" x2="100" y2="130" stroke="#dddddd" stroke-width="1" stroke-dasharray="2"/>
+  <line x1="150" y1="120" x2="150" y2="130" stroke="#dddddd" stroke-width="1" stroke-dasharray="2"/>
+  <line x1="50" y1="120" x2="150" y2="120" stroke="#dddddd" stroke-width="1" stroke-dasharray="2"/>
+</svg>

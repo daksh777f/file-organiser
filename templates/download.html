@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+
+{% block title %}File Organizer - Download Files{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0"><i class="bi bi-check-circle me-2"></i>Files Organized Successfully</h4>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <img src="{{ url_for('static', filename='img/organized.svg') }}" alt="Organized" class="img-fluid mb-3" style="max-height: 200px;">
+                    <h5 class="text-success">Your files have been organized!</h5>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-folder me-2"></i>Organized Files</h5>
+                            <div class="input-group" style="max-width: 300px;">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" class="form-control" id="file-search" placeholder="Search files...">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <ul class="nav nav-tabs" id="fileTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab" aria-controls="all" aria-selected="true">
+                                    <i class="bi bi-grid me-1"></i> All
+                                </button>
+                            </li>
+                            {% for category in structure.keys() %}
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="{{ category|lower }}-tab" data-bs-toggle="tab" data-bs-target="#{{ category|lower }}" type="button" role="tab" aria-controls="{{ category|lower }}" aria-selected="false">
+                                    <i class="{{ get_category_icon(category) }} me-1"></i> {{ category }}
+                                </button>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        <div class="tab-content p-3" id="fileTabsContent">
+                            <div class="tab-pane fade show active" id="all" role="tabpanel" aria-labelledby="all-tab">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>File Name</th>
+                                                <th>Category</th>
+                                                <th>Size</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for category, files in structure.items() %}
+                                                {% for file in files %}
+                                                <tr class="file-item" data-filename="{{ file.name }}" data-category="{{ category }}">
+                                                    <td>
+                                                        <i class="{{ get_file_icon(file.name) }} me-2"></i>
+                                                        {{ file.name }}
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-{{ get_category_color(category) }}">{{ category }}</span>
+                                                    </td>
+                                                    <td>{{ format_size(file.size) }}</td>
+                                                    <td>
+                                                        <a href="/api/files/{{ session_id }}/{{ category }}/{{ file.name }}" class="btn btn-sm btn-outline-primary">
+                                                            <i class="bi bi-download"></i>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            {% for category, files in structure.items() %}
+                            <div class="tab-pane fade" id="{{ category|lower }}" role="tabpanel" aria-labelledby="{{ category|lower }}-tab">
+                                {% if files %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>File Name</th>
+                                                <th>Size</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for file in files %}
+                                            <tr class="file-item" data-filename="{{ file.name }}" data-category="{{ category }}">
+                                                <td>
+                                                    <i class="{{ get_file_icon(file.name) }} me-2"></i>
+                                                    {{ file.name }}
+                                                </td>
+                                                <td>{{ format_size(file.size) }}</td>
+                                                <td>
+                                                    <a href="/api/files/{{ session_id }}/{{ category }}/{{ file.name }}" class="btn btn-sm btn-outline-primary">
+                                                        <i class="bi bi-download"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% else %}
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle me-2"></i> No files in this category
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                    <a href="/api/download-all/{{ session_id }}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-download me-2"></i>Download All Files (ZIP)
+                    </a>
+                    <a href="{{ url_for('index') }}" class="btn btn-outline-secondary btn-lg">
+                        <i class="bi bi-arrow-repeat me-2"></i>Organize More Files
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // File search functionality
+        const fileSearch = document.getElementById('file-search');
+        fileSearch.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const fileItems = document.querySelectorAll('.file-item');
+            
+            fileItems.forEach(function(item) {
+                const fileName = item.getAttribute('data-filename').toLowerCase();
+                if (fileName.includes(searchTerm)) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    });
+    
+    // Helper functions
+    function get_file_icon(filename) {
+        const ext = filename.split('.').pop().toLowerCase();
+        
+        const iconMap = {
+            // Documents
+            'pdf': 'bi bi-file-earmark-pdf',
+            'doc': 'bi bi-file-earmark-word',
+            'docx': 'bi bi-file-earmark-word',
+            'txt': 'bi bi-file-earmark-text',
+            'rtf': 'bi bi-file-earmark-text',
+            'xls': 'bi bi-file-earmark-excel',
+            'xlsx': 'bi bi-file-earmark-excel',
+            'ppt': 'bi bi-file-earmark-slides',
+            'pptx': 'bi bi-file-earmark-slides',
+            
+            // Images
+            'jpg': 'bi bi-file-earmark-image',
+            'jpeg': 'bi bi-file-earmark-image',
+            'png': 'bi bi-file-earmark-image',
+            'gif': 'bi bi-file-earmark-image',
+            'svg': 'bi bi-file-earmark-image',
+            
+            // Videos
+            'mp4': 'bi bi-file-earmark-play',
+            'mov': 'bi bi-file-earmark-play',
+            'avi': 'bi bi-file-earmark-play',
+            'mkv': 'bi bi-file-earmark-play',
+            
+            // Audio
+            'mp3': 'bi bi-file-earmark-music',
+            'wav': 'bi bi-file-earmark-music',
+            'ogg': 'bi bi-file-earmark-music',
+            
+            // Archives
+            'zip': 'bi bi-file-earmark-zip',
+            'rar': 'bi bi-file-earmark-zip',
+            '7z': 'bi bi-file-earmark-zip',
+            
+            // Code
+            'py': 'bi bi-file-earmark-code',
+            'js': 'bi bi-file-earmark-code',
+            'html': 'bi bi-file-earmark-code',
+            'css': 'bi bi-file-earmark-code',
+            'java': 'bi bi-file-earmark-code',
+            'json': 'bi bi-file-earmark-code'
+        };
+        
+        return iconMap[ext] || 'bi bi-file-earmark';
+    }
+    
+    function get_category_icon(category) {
+        const iconMap = {
+            'Documents': 'bi bi-file-earmark-text',
+            'Images': 'bi bi-file-earmark-image',
+            'Videos': 'bi bi-file-earmark-play',
+            'Audio': 'bi bi-file-earmark-music',
+            'Archives': 'bi bi-file-earmark-zip',
+            'Code': 'bi bi-file-earmark-code',
+            'Others': 'bi bi-file-earmark'
+        };
+        
+        return iconMap[category] || 'bi bi-file-earmark';
+    }
+    
+    function get_category_color(category) {
+        const colorMap = {
+            'Documents': 'primary',
+            'Images': 'success',
+            'Videos': 'warning',
+            'Audio': 'danger',
+            'Archives': 'info',
+            'Code': 'purple',
+            'Others': 'secondary'
+        };
+        
+        return colorMap[category] || 'secondary';
+    }
+    
+    function format_size(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .badge.bg-purple {
+        background-color: #6f42c1;
+    }
+    
+    .table-responsive {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .nav-tabs .nav-link {
+        color: #495057;
+    }
+    
+    .nav-tabs .nav-link.active {
+        color: #0d6efd;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}
